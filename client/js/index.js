@@ -29,7 +29,7 @@ $(function () {
                         <div class="p-3 me-3 border" style="border-radius: 15px; background-color: #fbfbfb;">
                         <p class="small mb-0">${msg}</p>
                         </div>
-                        <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava2-bg.webp"
+                        <img src="img/ava2-bg.webp"
                         alt="avatar 1" style="width: 45px; height: 100%;">
                     </div>`);
         $('#messages').append(elem);
@@ -39,7 +39,7 @@ $(function () {
     socket.on('bot message', function (msg) {
         console.log(msg);
         var elem = $(`<div class="d-flex flex-row justify-content-start mb-4">
-                        <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava5-bg.webp"
+                        <img src="img/ava5-bg.webp"
                         alt="avatar 1" style="width: 45px; height: 100%;">
                         <div class="p-3 ms-3" style="border-radius: 15px; background-color: rgba(57, 192, 237,.2);">
                         <p class="small mb-0">${msg}</p>
@@ -88,6 +88,7 @@ $(function () {
                 });
 
                 recordAudio.startRecording();
+                speakButton.addClass("rec");
             }, function (error) {
                 console.error(JSON.stringify(error));
             });
@@ -97,12 +98,13 @@ $(function () {
             if (recordAudio.state === 'stopped') {
                 recordAudio.reset();
                 recordAudio.startRecording();
+                speakButton.addClass("rec");
             }
             // recording started
             else if (recordAudio.state === 'recording') {
                 // stop audio recorder
                 recordAudio.stopRecording(function () {
-
+                    speakButton.removeClass("rec");
                     // after stopping the audio, get the audio data
                     recordAudio.getDataURL(function (audioDataURL) {
                         var files = {

@@ -118,8 +118,26 @@ io.on('connection', socket => {
     const dataURL = data.audio.dataURL.split(',').pop();
     // we will convert it to a Buffer
     let fileBuffer = Buffer.from(dataURL, 'base64');
-    const results = await transcribeAudio(fileBuffer);
-    onMessage(results[0].results[0].alternatives[0].transcript, this.id);
+    const responses = await transcribeAudio(fileBuffer);
+
+    let rsp = '';
+    for (const response of responses) {
+      if (response && response.results) {
+        for (const result of response.results) {
+          if (result && result.alternatives) {
+            for (const alt of result.alternatives)
+              if (alt && alt.transcript) {
+                console.log(`Agent Response: ${alt.transcript}`);
+                rsp += alt.transcript + '. ';
+              }
+          }
+        }
+      }
+    }
+    if (rsp.length == 0)
+      rsp = 'Could not recognize your voice. Make sure your microphone is working.';
+
+    onMessage(rsp, this.id);
   });
 
 });

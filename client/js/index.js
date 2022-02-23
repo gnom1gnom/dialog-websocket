@@ -1,11 +1,27 @@
 $(function () {
     var socket = io();
-    $('#send').click(function () {
+
+    $.fn.pressEnter = function (fn) {
+
+        return this.each(function () {
+            $(this).bind('enterPress', fn);
+            $(this).keyup(function (e) {
+                if (e.keyCode == 13) {
+                    $(this).trigger("enterPress");
+                }
+            })
+        });
+    };
+
+    var sendChatMessage = function () {
         console.log($('#query').val());
         socket.emit('chat message', $('#query').val());
         $('#query').val('');
         return false;
-    });
+    }
+
+    $('#query').pressEnter(sendChatMessage)
+    $('#send').click(sendChatMessage);
 
     socket.on('chat message', function (msg) {
         console.log(msg);
@@ -33,16 +49,6 @@ $(function () {
           </div>`
         );
         window.scrollTo(0, document.body.scrollHeight);
-    });
-
-    // when the server found results send
-    // it back to the client
-    const resultpreview = document.getElementById('results');
-    socket.on('results', function (data) {
-        // show the results on the screen
-        if (data[0] && data[0].results[0] && data[0].results[0].alternatives[0]) {
-            resultpreview.innerHTML += "" + data[0].results[0].alternatives[0].transcript;
-        }
     });
 
     let speakButton = $('#speak');

@@ -56,10 +56,8 @@ $(function () {
 
     // on start button handler
     speakButton.click(function () {
-        // recording started
-        if (speakButton.text() === "Speak") {
-            speakButton.text("Stop");
 
+        if (!recordAudio) {
             // make use of HTML 5/WebRTC, JavaScript getUserMedia()
             // to capture the browser microphone stream
             navigator.getUserMedia({
@@ -96,24 +94,30 @@ $(function () {
                 console.error(JSON.stringify(error));
             });
         }
-        else {
-            speakButton.text("Speak");
 
-            // stop audio recorder
-            recordAudio.stopRecording(function () {
+        if (recordAudio) {
+            if (recordAudio.state === 'stopped') {
+                recordAudio.reset();
+                recordAudio.startRecording();
+            }
+            // recording started
+            else if (recordAudio.state === 'recording') {
+                // stop audio recorder
+                recordAudio.stopRecording(function () {
 
-                // after stopping the audio, get the audio data
-                recordAudio.getDataURL(function (audioDataURL) {
-                    var files = {
-                        audio: {
-                            type: recordAudio.getBlob().type || 'audio/wav',
-                            dataURL: audioDataURL
-                        }
-                    };
-                    // submit the audio file to the server
-                    socket.emit('message-transcribe', files);
+                    // after stopping the audio, get the audio data
+                    recordAudio.getDataURL(function (audioDataURL) {
+                        var files = {
+                            audio: {
+                                type: recordAudio.getBlob().type || 'audio/wav',
+                                dataURL: audioDataURL
+                            }
+                        };
+                        // submit the audio file to the server
+                        socket.emit('message-transcribe', files);
+                    });
                 });
-            });
+            }
         }
     });
 

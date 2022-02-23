@@ -97,15 +97,23 @@ async function transcribeAudio(audio) {
   return response;
 }
 
-// [START appengine_websockets_app]
-const app = require('express')();
-app.set('view engine', 'pug');
+const path = require('path');
+const http = require('http');
+const cors = require('cors');
+const express = require('express')
+const app = express();
+app.use(cors());
+app.use(express.static('client'))
+app.get('/', function (req, res) {
+  res.sendFile(path.join(__dirname + '/index.html'));
+});
+const server = http.createServer(app);
 
-const server = require('http').Server(app);
-const io = require('socket.io')(server);
+const socketIo = require('socket.io');
+const io = socketIo(server);
 
-app.get('/', (req, res) => {
-  res.render('index.pug');
+server.listen(8080, () => {
+  console.log('Running server on port %s', 8080);
 });
 
 io.on('connection', socket => {
@@ -141,14 +149,5 @@ io.on('connection', socket => {
   });
 
 });
-
-if (module === require.main) {
-  const PORT = parseInt(process.env.PORT) || 8080;
-  server.listen(PORT, () => {
-    console.log(`App listening on port ${PORT}`);
-    console.log('Press Ctrl+C to quit.');
-  });
-}
-// [END appengine_websockets_app]
 
 module.exports = server;

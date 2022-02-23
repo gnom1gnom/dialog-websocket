@@ -25,30 +25,28 @@ $(function () {
 
     socket.on('chat message', function (msg) {
         console.log(msg);
-        $('#messages').append(
-            `<div class="d-flex flex-row justify-content-end mb-4">
-            <div class="p-3 me-3 border" style="border-radius: 15px; background-color: #fbfbfb;">
-              <p class="small mb-0">${msg}</p>
-            </div>
-            <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava2-bg.webp"
-              alt="avatar 1" style="width: 45px; height: 100%;">
-          </div>`
-        );
-        window.scrollTo(0, document.body.scrollHeight);
+        var elem = $(`<div class="d-flex flex-row justify-content-end mb-4">
+                        <div class="p-3 me-3 border" style="border-radius: 15px; background-color: #fbfbfb;">
+                        <p class="small mb-0">${msg}</p>
+                        </div>
+                        <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava2-bg.webp"
+                        alt="avatar 1" style="width: 45px; height: 100%;">
+                    </div>`);
+        $('#messages').append(elem);
+        $('#messages').animate({ scrollTop: $(elem).offset().top }, 500);
     });
 
     socket.on('bot message', function (msg) {
         console.log(msg);
-        $('#messages').append(
-            `<div class="d-flex flex-row justify-content-start mb-4">
-            <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava5-bg.webp"
-              alt="avatar 1" style="width: 45px; height: 100%;">
-            <div class="p-3 ms-3" style="border-radius: 15px; background-color: rgba(57, 192, 237,.2);">
-              <p class="small mb-0">${msg}</p>
-            </div>
-          </div>`
-        );
-        window.scrollTo(0, document.body.scrollHeight);
+        var elem = $(`<div class="d-flex flex-row justify-content-start mb-4">
+                        <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava5-bg.webp"
+                        alt="avatar 1" style="width: 45px; height: 100%;">
+                        <div class="p-3 ms-3" style="border-radius: 15px; background-color: rgba(57, 192, 237,.2);">
+                        <p class="small mb-0">${msg}</p>
+                        </div>
+                    </div>`);
+        $('#messages').append(elem);
+        $('#messages').animate({ scrollTop: $(elem).offset().top }, 500);
     });
 
     let speakButton = $('#speak');

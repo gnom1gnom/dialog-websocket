@@ -19,20 +19,25 @@ const location = 'global';
 const agentId = 'ddf7ad00-8fc5-44db-9ed4-af58b71b5d8f';
 const languageCode = 'en';
 
-const { SessionsClient } = require('@google-cloud/dialogflow-cx');
-const client = new SessionsClient();
+const df = require('@google-cloud/dialogflow-cx');
+const dfClient = new df.SessionsClient();
 
-async function onMessage(msg) {
+const stt = require('@google-cloud/speech');
+const sttClient = new stt.SpeechClient();
+
+async function onMessage(msg, sessionId) {
   console.log('chat message', msg);
   io.emit('chat message', msg);
 
-  let sessionId = this.id; // socket.id
+  if (!sessionId)
+    sessionId = this.id; // socket.id
+
   let rsp = await detectIntentText(sessionId, msg);
   io.emit('chat message', rsp);
 }
 
 async function detectIntentText(sessionId, query) {
-  const sessionPath = client.projectLocationAgentSessionPath(
+  const sessionPath = dfClient.projectLocationAgentSessionPath(
     projectId,
     location,
     agentId,
@@ -49,8 +54,9 @@ async function detectIntentText(sessionId, query) {
       languageCode,
     },
   };
+
   let rsp = '';
-  const [response] = await client.detectIntent(request);
+  const [response] = await dfClient.detectIntent(request);
   console.log(`User Query: ${query}`);
   for (const message of response.queryResult.responseMessages) {
     if (message.text) {
@@ -70,6 +76,26 @@ async function detectIntentText(sessionId, query) {
   return rsp;
 }
 
+async function transcribeAudio(audio) {
+  const request = {
+    config: {
+      sampleRateHertz: 16000,
+      encoding: 'AUDIO_ENCODING_LINEAR_16',
+      languageCode: 'en-US'
+    },
+    interimResults: false,
+    audio: {
+      content: audio
+    },
+    //enableSpeakerDiarization: true,
+    //diarizationSpeakerCount: 2,
+    //model: `phone_call`
+  }
+
+  console.log(request);
+  const response = await sttClient.recognize(request);
+  return response;
+}
 
 // [START appengine_websockets_app]
 const app = require('express')();
@@ -86,6 +112,16 @@ io.on('connection', socket => {
   console.log(`user ${socket.id} connected`);
 
   socket.on('chat message', onMessage);
+
+  socket.on('message-transcribe', async function (data) {
+    // we get the dataURL which was sent from the client
+    const dataURL = data.audio.dataURL.split(',').pop();
+    // we will convert it to a Buffer
+    let fileBuffer = Buffer.from(dataURL, 'base64');
+    const results = await transcribeAudio(fileBuffer);
+    onMessage(results[0].results[0].alternatives[0].transcript, this.id);
+  });
+
 });
 
 if (module === require.main) {

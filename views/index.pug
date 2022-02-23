@@ -1,0 +1,137 @@
+//- Copyright 2018 Google LLC.
+//-
+//- Licensed under the Apache License, Version 2.0 (the "License");
+//- you may not use this file except in compliance with the License.
+//- You may obtain a copy of the License at
+//-
+//-     http://www.apache.org/licenses/LICENSE-2.0
+//-
+//- Unless required by applicable law or agreed to in writing, software
+//- distributed under the License is distributed on an "AS IS" BASIS,
+//- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//- See the License for the specific language governing permissions and
+//- limitations under the License.
+
+//- [START appengine_websockets_index]
+doctype html
+html(lang="en")
+  head
+    title Socket.IO chat on App Engine
+    meta(charset="utf-8")
+    style.
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px Helvetica, Arial; }
+      div { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      div input { border: 0; padding: 10px; width: 75%; margin-right: .5%; }
+      div button { width: 10%; background: rgb(130, 224, 255); margin: 10px; padding: 10px; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 5px 10px; }
+      #messages li:nth-child(odd) { background: #eee; }
+  //- [START appengine_websockets_form]
+  body
+    ul(id="messages")
+    div
+      input(id="query" autocomplete="off")
+      button(id="speak") Speak
+      button(id="send") Send
+    //- [END appengine_websockets_form]
+
+    script(src="https://www.WebRTC-Experiment.com/RecordRTC.js")
+    script(src="/socket.io/socket.io.js")
+    script(src="https://code.jquery.com/jquery-3.6.0.js")
+    script.
+      // [START appengine_websockets_js]
+      $(function () {
+        var socket = io();
+        $('#send').click(function(){
+          console.log($('#query').val());
+          socket.emit('chat message', $('#query').val());
+          $('#query').val('');
+          return false;
+        });
+
+        socket.on('chat message', function(msg){
+          console.log(msg);
+          $('#messages').append($('<li>').text(msg));
+          window.scrollTo(0, document.body.scrollHeight);
+        });
+        
+        // when the server found results send
+        // it back to the client
+        const resultpreview = document.getElementById('results');
+        socket.on('results', function (data) {
+            // show the results on the screen
+            if(data[0] && data[0].results[0] && data[0].results[0].alternatives[0]){
+                resultpreview.innerHTML += "" + data[0].results[0].alternatives[0].transcript;
+            }
+        });
+
+        let speakButton = $('#speak');
+        let recordAudio;
+
+        // on start button handler
+        speakButton.click(function() {
+            // recording started
+            if(speakButton.text() === "Speak") {
+              speakButton.text("Stop");
+
+              // make use of HTML 5/WebRTC, JavaScript getUserMedia()
+              // to capture the browser microphone stream
+              navigator.getUserMedia({
+                  audio: true
+              }, function(stream) {
+                      recordAudio = RecordRTC(stream, {
+                      type: 'audio',
+                      mimeType: 'audio/webm',
+                      sampleRate: 44100, // this sampleRate should be the same in your server code
+
+                      // MediaStreamRecorder, StereoAudioRecorder, WebAssemblyRecorder
+                      // CanvasRecorder, GifRecorder, WhammyRecorder
+                      recorderType: StereoAudioRecorder,
+
+                      // Dialogflow / STT requires mono audio
+                      numberOfAudioChannels: 1,
+
+                      // get intervals based blobs
+                      // value in milliseconds
+                      // as you might not want to make detect calls every seconds
+                      timeSlice: 4000,
+
+                      // only for audio track
+                      // audioBitsPerSecond: 128000,
+
+                      // used by StereoAudioRecorder
+                      // the range 22050 to 96000.
+                      // let us force 16khz recording:
+                      desiredSampRate: 16000
+                  });
+
+                  recordAudio.startRecording();
+              }, function(error) {
+                  console.error(JSON.stringify(error));
+              });
+            }
+            else {
+              speakButton.text("Speak");
+
+              // stop audio recorder
+              recordAudio.stopRecording(function() {
+
+                  // after stopping the audio, get the audio data
+                  recordAudio.getDataURL(function(audioDataURL) {
+                      var files = {
+                          audio: {
+                              type: recordAudio.getBlob().type || 'audio/wav',
+                              dataURL: audioDataURL
+                          }
+                      };
+                      // submit the audio file to the server
+                      socket.emit('message-transcribe', files);
+                  });
+              });
+            }
+        });
+
+      });
+
+

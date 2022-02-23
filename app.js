@@ -33,7 +33,7 @@ async function onMessage(msg, sessionId) {
     sessionId = this.id; // socket.id
 
   let rsp = await detectIntentText(sessionId, msg);
-  io.emit('chat message', rsp);
+  io.emit('bot message', rsp);
 }
 
 async function detectIntentText(sessionId, query) {

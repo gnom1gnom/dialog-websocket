@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "express": "^4.15.4",
-    "pug": "^3.0.0",
+    "cors": "^2.8.5",
     "socket.io": "^4.0.0",
     "supertest": "^6.0.0",
     "@google-cloud/dialogflow-cx": "^2.14.0",

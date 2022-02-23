@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <title>Dialogflow chat</title>
+  <!-- MDB icon -->
+  <link rel="icon" href="img/mdb-favicon.ico" type="image/x-icon" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css" />
+  <!-- Google Fonts Roboto -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" />
+  <!-- MDB -->
+  <link rel="stylesheet" href="css/mdb.min.css" />
+  <link rel="stylesheet" href="css/index.css" />
+</head>
+
+<body>
+  <section style="background-color: #eee;">
+    <div class="container py-5">
+
+      <div class="row d-flex justify-content-center">
+        <div class="col-md-8 col-lg-6 col-xl-4">
+
+          <div class="card" id="chat1" style="border-radius: 15px;">
+            <div
+              class="card-header d-flex justify-content-between align-items-center p-3 bg-info text-white border-bottom-0"
+              style="border-top-left-radius: 15px; border-top-right-radius: 15px;">
+              <i class="fas"></i>
+              <p class="mb-0 fw-bold">Live chat</p>
+              <i class="fas"></i>
+            </div>
+            <div class="card-body">
+              <div id="messages">
+                <div class="d-flex flex-row justify-content-start mb-4">
+                  <img src="img/ava5-bg.webp" alt="avatar 1" style="width: 45px; height: 100%;">
+                  <div class="p-3 ms-3" style="border-radius: 15px; background-color: rgba(57, 192, 237,.2);">
+                    <p class="small mb-0">Hello and thank you for visiting Dialogflow chat demo. Type your message or
+                      use voice recognition.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card-footer text-muted d-flex justify-content-start align-items-center p-3">
+                <img src="img/ava2-bg.webp" alt="avatar 3" style="width: 40px; height: 100%;">
+                <input type="text" class="form-control form-control-lg" placeholder="Type message" id="query">
+                <a class="ms-3" href="#!" id="speak"><i class="fas fa-microphone"></i></a>
+                <a class="ms-3" href="#!" id="send"><i class="fas fa-paper-plane"></i></a>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- MDB -->
+  <script type="text/javascript" src="js/mdb.min.js"></script>
+  <script type="text/javascript" src="https://www.WebRTC-Experiment.com/RecordRTC.js"></script>
+  <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+  <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.js"></script>
+  <script type="text/javascript" src="js/index.js"></script>
+  <!-- Custom scripts -->
+  <script type="text/javascript"></script>
+</body>
+
+</html>

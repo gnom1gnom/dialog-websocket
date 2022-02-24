@@ -19,22 +19,120 @@ const location = 'global';
 const agentId = 'ddf7ad00-8fc5-44db-9ed4-af58b71b5d8f';
 const languageCode = 'en';
 
+/**
+ * Example for regional endpoint:
+ *   const location = 'us-central1'
+ *   const client = new SessionsClient({apiEndpoint: 'us-central1-dialogflow.googleapis.com'})
+ */
 const df = require('@google-cloud/dialogflow-cx');
 const dfClient = new df.SessionsClient();
 
 const stt = require('@google-cloud/speech');
 const sttClient = new stt.SpeechClient();
 
-async function onMessage(msg, sessionId) {
-  console.log('chat message', msg);
-  io.emit('chat message', msg);
+const audioFileName = 'audio.raw';
+const encoding = 'AUDIO_ENCODING_LINEAR_16';
+const sampleRateHertz = 16000;
 
-  if (!sessionId)
-    sessionId = this.id; // socket.id
 
-  let rsp = await detectIntentText(sessionId, msg);
-  io.emit('bot message', rsp);
+const fs = require('fs');
+const util = require('util');
+const { Transform, pipeline } = require('stream');
+const pump = util.promisify(pipeline);
+
+async function detectIntentAudio(sessionId, audio, onResult) {
+  // const sessionId = Math.random().toString(36).substring(7);
+  const sessionPath = dfClient.projectLocationAgentSessionPath(
+    projectId,
+    location,
+    agentId,
+    sessionId
+  );
+  console.info(sessionPath);
+
+  // Create a stream for the streaming request.
+  const detectStream = dfClient
+    .streamingDetectIntent()
+    .on('error', console.error)
+    .on('data', data => {
+      if (data.recognitionResult) {
+        console.log(
+          `Intermediate Transcript: ${data.recognitionResult.transcript}`
+        );
+      } else {
+        console.log('Detected Intent:');
+        const result = data.detectIntentResponse.queryResult;
+
+        console.log(`User Query: ${result.transcript}`);
+        for (const message of result.responseMessages) {
+          if (message.text) {
+            console.log(`Agent Response: ${message.text.text}`);
+            onResult(message.text.text);
+          }
+        }
+        if (result.match.intent) {
+          console.log(`Matched Intent: ${result.match.intent.displayName}`);
+        }
+        console.log(`Current Page: ${result.currentPage.displayName}`);
+      }
+    });
+
+  // Write the initial stream request to config for audio input.
+  const initialStreamRequest = {
+    session: sessionPath,
+    queryInput: {
+      audio: {
+        config: {
+          audioEncoding: encoding,
+          sampleRateHertz: sampleRateHertz,
+          synthesize_speech_config: {
+            voice: {
+              // Set's the name and gender of the ssml voice
+              name: 'en-GB-Standard-A',
+              ssml_gender: 'SSML_VOICE_GENDER_FEMALE',
+            },
+          },
+          singleUtterance: true,
+        },
+      },
+      languageCode: languageCode,
+    },
+  };
+  detectStream.write(initialStreamRequest);
+
+  await pump(
+    audio,
+    // Format the audio stream into the request format.
+    new Transform({
+      objectMode: true,
+      transform: (obj, _, next) => {
+        next(null, {
+          inputAudio: obj, outputAudioConfig: {
+            audioEncoding: `OUTPUT_AUDIO_ENCODING_LINEAR_16`
+          }
+        });
+      }
+    }),
+    stream
+  );
+
+  /*
+  // Stream the audio from audio file to Dialogflow.
+  await pump(
+    // fs.createReadStream(audioFileName),
+    audio,
+    // Format the audio stream into the request format.
+    new Transform({
+      objectMode: true,
+      transform: (obj, _, next) => {
+        next(null, { queryInput: { audio: { audio: obj } } });
+      },
+    }),
+    detectStream
+  );
+  */
 }
+
 
 async function detectIntentText(sessionId, query) {
   const sessionPath = dfClient.projectLocationAgentSessionPath(
@@ -79,9 +177,9 @@ async function detectIntentText(sessionId, query) {
 async function transcribeAudio(audio) {
   const request = {
     config: {
-      sampleRateHertz: 16000,
-      encoding: 'AUDIO_ENCODING_LINEAR_16',
-      languageCode: 'en-US'
+      sampleRateHertz: sampleRateHertz,
+      encoding: encoding,
+      languageCode: languageCode
     },
     interimResults: false,
     audio: {
@@ -149,5 +247,17 @@ io.on('connection', socket => {
   });
 
 });
+
+async function onMessage(msg, sessionId) {
+  console.log('chat message', msg);
+  io.emit('chat message', msg);
+
+  if (!sessionId)
+    sessionId = this.id; // socket.id
+
+  let rsp = await detectIntentText(sessionId, msg);
+  io.emit('bot message', rsp);
+}
+
 
 module.exports = server;

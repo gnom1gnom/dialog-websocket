@@ -69,11 +69,9 @@ $(function () {
         }
 
         if (!recordAudioRTC) {
-            // make use of HTML 5/WebRTC, JavaScript getUserMedia()
-            // to capture the browser microphone stream
-            navigator.getUserMedia({
+            navigator.mediaDevices.getUserMedia({
                 audio: true
-            }, function (stream) {
+            }).then(async function (stream) {
                 recordAudioRTC = RecordRTC(stream, {
                     type: 'audio',
                     mimeType: 'audio/webm',
@@ -102,8 +100,6 @@ $(function () {
 
                 recordAudioRTC.startRecording();
                 speakButton.addClass("rec");
-            }, function (error) {
-                console.error(JSON.stringify(error));
             });
         }
 
@@ -148,11 +144,9 @@ $(function () {
         }
 
         if (!streamAudioRTC) {
-            // make use of HTML 5/WebRTC, JavaScript getUserMedia()
-            // to capture the browser microphone stream
-            navigator.getUserMedia({
+            navigator.mediaDevices.getUserMedia({
                 audio: true
-            }, function (stream) {
+            }).then(async function (stream) {
                 streamAudioRTC = RecordRTC(stream, {
                     type: 'audio',
                     mimeType: 'audio/webm',
@@ -190,8 +184,6 @@ $(function () {
 
                 streamAudioRTC.startRecording();
                 streamButton.addClass("rec");
-            }, function (error) {
-                console.error(JSON.stringify(error));
             });
         }
 

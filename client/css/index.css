@@ -8,6 +8,10 @@ body {
     padding-right: 10px;
 }
 
+.chat-button {
+    font-size: 24px;
+}
+
 .mic {
     color: #757575;
 }

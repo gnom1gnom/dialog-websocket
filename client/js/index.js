@@ -32,8 +32,10 @@ $(function () {
                         <img src="img/ava2-bg.webp"
                         alt="avatar 1" style="width: 45px; height: 100%;">
                     </div>`);
+        let messages = $('#messages');
+
         $('#messages').append(elem);
-        $('#messages').animate({ scrollTop: $(elem).offset().top }, 500);
+        $('#messages').animate({ scrollTop: messages[0].scrollHeight }, 1000);
     });
 
     socket.on('bot message', function (msg) {
@@ -45,8 +47,10 @@ $(function () {
                         <p class="small mb-0">${msg}</p>
                         </div>
                     </div>`);
+        let messages = $('#messages');
+
         $('#messages').append(elem);
-        $('#messages').animate({ scrollTop: $(elem).offset().top }, 500);
+        $('#messages').animate({ scrollTop: messages[0].scrollHeight }, 1000);
     });
 
     let speakButton = $('#speak');
@@ -176,7 +180,7 @@ $(function () {
                         // stream directly to server
                         // it will be temp. stored locally
                         ss(socket).emit('stream', audioStream, {
-                            name: 'stream.wav',
+                            name: socket.id + '.wav',
                             size: blob.size
                         });
                         // pipe the audio blob to the read stream
@@ -206,6 +210,8 @@ $(function () {
                     // after stopping the audio, close the stream
                     audioStream.destroy();
                     audioStream = null;
+
+                    socket.emit('stream-closed', socket.id + '.wav');
                 });
             }
         }

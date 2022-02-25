@@ -19,6 +19,7 @@ const location = 'global';
 const agentId = 'ddf7ad00-8fc5-44db-9ed4-af58b71b5d8f';
 const languageCode = 'en';
 
+const os = require("os");
 const path = require('path');
 const http = require('http');
 const cors = require('cors');
@@ -265,9 +266,12 @@ io.on('connection', socket => {
 
   ss(socket).on('stream', function (stream, data) {
     // get the name of the stream
+
+
+    // get temp directory
     const filename = path.basename(data.name);
     // pipe the filename to the stream
-    stream.pipe(fs.createWriteStream(filename));
+    stream.pipe(fs.createWriteStream(path.join(os.tmpdir(), filename)));
     // make a detectIntStream call
     detectIntentStream(socket.id, stream, async function (response) {
       if (response.transcript.length == 0)
@@ -285,6 +289,12 @@ io.on('connection', socket => {
     });
   });
 
+  socket.on('stream-closed', audioStreamFile => {
+    console.log('stream-closed', audioStreamFile);
+    const filename = path.basename(audioStreamFile.name);
+    // pipe the filename to the stream
+    fs.unlink(path.join(os.tmpdir(), filename));
+  });
 });
 
 module.exports = server;

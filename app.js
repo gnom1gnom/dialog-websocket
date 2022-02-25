@@ -291,9 +291,13 @@ io.on('connection', socket => {
 
   socket.on('stream-closed', audioStreamFile => {
     console.log('stream-closed', audioStreamFile);
-    const filename = path.basename(audioStreamFile.name);
-    // pipe the filename to the stream
-    fs.unlink(path.join(os.tmpdir(), filename));
+    const filename = path.basename(audioStreamFile);
+
+    try {
+      fs.unlinkSync(path.join(os.tmpdir(), filename))
+    } catch (err) {
+      console.error(err)
+    }
   });
 });
 

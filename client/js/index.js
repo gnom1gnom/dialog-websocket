@@ -121,5 +121,52 @@ $(function () {
         }
     });
 
+    let streamButton = $('#stream');
+
+    streamButton.click(function () {
+        navigator.getUserMedia({
+            audio: true
+        }, function (stream) {
+            recordAudio = RecordRTC(stream, {
+                type: 'audio',
+                mimeType: 'audio/webm',
+                sampleRate: 44100,
+                desiredSampRate: 16000,
+
+                recorderType: StereoAudioRecorder,
+                numberOfAudioChannels: 1,
+
+
+                //1)
+                // get intervals based blobs
+                // value in milliseconds
+                // as you might not want to make detect calls every seconds
+                timeSlice: 4000,
+
+                //2)
+                // as soon as the stream is available
+                ondataavailable: function (blob) {
+
+                    // 3
+                    // making use of socket.io-stream for bi-directional
+                    // streaming, create a stream
+                    var stream = ss.createStream();
+                    // stream directly to server
+                    // it will be temp. stored locally
+                    ss(socket).emit('stream', stream, {
+                        name: 'stream.wav',
+                        size: blob.size
+                    });
+                    // pipe the audio blob to the read stream
+                    ss.createBlobReadStream(blob).pipe(stream);
+                }
+            });
+
+            recordAudio.startRecording();
+            streamButton.addClass("rec");
+        }, function (error) {
+            console.error(JSON.stringify(error));
+        });
+    });
 });
 

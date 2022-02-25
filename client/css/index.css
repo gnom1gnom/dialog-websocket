@@ -8,11 +8,11 @@ body {
     padding-right: 10px;
 }
 
-#speak {
+.mic {
     color: #757575;
 }
 
-#speak.rec {
+.rec {
     color: #dc3545 !important;
 }
 

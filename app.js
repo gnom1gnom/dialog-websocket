@@ -218,14 +218,13 @@ const io = socketIo(server);
 
 io.on('connection', socket => {
   console.log(`user ${socket.id} connected`);
-  socket.emit('server_setup', `Server connected [id=${socket.id}]`);
 
-  socket.on('chat message', text => {
-    console.log('chat message', text);
-    socket.emit('chat message', text);
+  socket.on('chat-message', text => {
+    console.log('chat-message', text);
+    socket.emit('chat-message', text);
 
     detectIntentText(socket.id, text, async function (response) {
-      socket.emit('bot message', response);
+      socket.emit('bot-message', response);
     });
   });
 
@@ -254,11 +253,11 @@ io.on('connection', socket => {
       if (reply.length == 0)
         reply = 'Could not recognize your voice. Make sure your microphone is working.';
 
-      console.log('chat message', reply);
-      socket.emit('chat message', reply);
+      console.log('chat-message', reply);
+      socket.emit('chat-message', reply);
 
       detectIntentText(socket.id, reply, async function (response) {
-        socket.emit('bot message', response);
+        socket.emit('bot-message', response);
       });
     });
   });
@@ -275,14 +274,14 @@ io.on('connection', socket => {
     // make a detectIntStream call
     detectIntentStream(socket.id, stream, async function (response) {
       if (response.transcript.length == 0)
-        socket.emit('chat message', "...");
+        socket.emit('chat-message', "...");
       else
-        socket.emit('chat message', response.transcript);
+        socket.emit('chat-message', response.transcript);
 
       if (response.responseMessages) {
         for (const message of response.responseMessages) {
           if (message.text) {
-            socket.emit('bot message', message.text.text);
+            socket.emit('bot-message', message.text.text);
           }
         }
       }

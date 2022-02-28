@@ -15,7 +15,7 @@ $(function () {
 
     var sendChatMessage = function () {
         console.log($('#query').val());
-        socket.emit('chat message', $('#query').val());
+        socket.emit('chat-message', $('#query').val());
         $('#query').val('');
         return false;
     }
@@ -23,7 +23,7 @@ $(function () {
     $('#query').pressEnter(sendChatMessage)
     $('#send').click(sendChatMessage);
 
-    socket.on('chat message', function (msg) {
+    socket.on('chat-message', function (msg) {
         console.log(msg);
         var elem = $(`<div class="d-flex flex-row justify-content-end mb-4">
                         <div class="p-3 me-3 border" style="border-radius: 15px; background-color: #fbfbfb;">
@@ -38,7 +38,7 @@ $(function () {
         $('#messages').animate({ scrollTop: messages[0].scrollHeight }, 1000);
     });
 
-    socket.on('bot message', function (msg) {
+    socket.on('bot-message', function (msg) {
         console.log(msg);
         var elem = $(`<div class="d-flex flex-row justify-content-start mb-4">
                         <img src="img/ava5-bg.webp"

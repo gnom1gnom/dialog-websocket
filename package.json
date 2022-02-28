@@ -15,19 +15,27 @@
     "e2e-test": "samples test deploy"
   },
   "dependencies": {
-    "express": "^4.15.4",
+    "@google-cloud/dialogflow-cx": "^2.15.0",
+    "@google-cloud/media-translation": "^2.4.0",
+    "@google-cloud/speech": "^4.10.0",
+    "@google-cloud/text-to-speech": "^3.4.0",
     "cors": "^2.8.5",
-    "socket.io": "^4.0.0",
-    "supertest": "^6.0.0",
-    "@google-cloud/dialogflow-cx": "^2.14.0",
-    "@google-cloud/speech": "^3.5.3",
-    "@google-cloud/text-to-speech": "^2.1.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "node-fetch": "^2.6.0",
+    "pb-util": "^0.1.2",
+    "recordrtc": "latest",
+    "socket.io": "^4.4.1",
+    "socket.io-stream": "^0.9.1",
+    "stream": "0.0.2",
+    "through2": "^4.0.2",
+    "util": "^0.12.4",
     "uuid": "^8.3.1"
   },
   "devDependencies": {
-    "mocha": "^9.0.0",
-    "puppeteer": "^13.0.0",
     "c8": "^7.3.0",
-    "chai": "^4.2.0"
+    "chai": "^4.2.0",
+    "mocha": "^9.0.0",
+    "puppeteer": "^13.0.0"
   }
 }

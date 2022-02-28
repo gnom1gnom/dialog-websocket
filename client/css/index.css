@@ -8,11 +8,15 @@ body {
     padding-right: 10px;
 }
 
-#speak {
+.chat-button {
+    font-size: 24px;
+}
+
+.mic {
     color: #757575;
 }
 
-#speak.rec {
+.rec {
     color: #dc3545 !important;
 }
 

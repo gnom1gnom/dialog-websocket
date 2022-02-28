@@ -9,12 +9,19 @@
   <!-- MDB icon -->
   <link rel="icon" href="img/mdb-favicon.ico" type="image/x-icon" />
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css" />
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.0.0/css/all.css" />
   <!-- Google Fonts Roboto -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" />
   <!-- MDB -->
   <link rel="stylesheet" href="css/mdb.min.css" />
   <link rel="stylesheet" href="css/index.css" />
+
+  <script type="text/javascript" src="js/mdb.min.js"></script>
+  <script type="text/javascript" src="https://www.WebRTC-Experiment.com/RecordRTC.js"></script>
+  <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io-stream/0.9.1/socket.io-stream.js"></script>
+  <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.js"></script>
+  <script type="text/javascript" src="js/index.js"></script>
 </head>
 
 <body>
@@ -46,28 +53,16 @@
               <div class="card-footer text-muted d-flex justify-content-start align-items-center p-3">
                 <img src="img/ava2-bg.webp" alt="avatar 3" style="width: 40px; height: 100%;">
                 <input type="text" class="form-control form-control-lg" placeholder="Type message" id="query">
-                <a class="ms-3" href="#!" id="speak"><i class="fas fa-microphone"></i></a>
-                <a class="ms-3" href="#!" id="send"><i class="fas fa-paper-plane"></i></a>
+                <a class="ms-3 mic" href="#!" id="speak"><i class="fas fa-microphone chat-button"></i></a>
+                <a class="ms-3 mic" href="#!" id="stream"><i class="fas fa-ear-listen chat-button"></i></a>
+                <a class="ms-3" href="#!" id="send"><i class="fas fa-paper-plane chat-button"></i></a>
               </div>
-
             </div>
           </div>
-
         </div>
       </div>
-
     </div>
   </section>
-
-
-  <!-- MDB -->
-  <script type="text/javascript" src="js/mdb.min.js"></script>
-  <script type="text/javascript" src="https://www.WebRTC-Experiment.com/RecordRTC.js"></script>
-  <script type="text/javascript" src="/socket.io/socket.io.js"></script>
-  <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.js"></script>
-  <script type="text/javascript" src="js/index.js"></script>
-  <!-- Custom scripts -->
-  <script type="text/javascript"></script>
 </body>
 
 </html>

@@ -15,7 +15,7 @@ $(function () {
 
     var sendChatMessage = function () {
         console.log($('#query').val());
-        socket.emit('chat message', $('#query').val());
+        socket.emit('chat-message', $('#query').val());
         $('#query').val('');
         return false;
     }
@@ -23,7 +23,7 @@ $(function () {
     $('#query').pressEnter(sendChatMessage)
     $('#send').click(sendChatMessage);
 
-    socket.on('chat message', function (msg) {
+    socket.on('chat-message', function (msg) {
         console.log(msg);
         var elem = $(`<div class="d-flex flex-row justify-content-end mb-4">
                         <div class="p-3 me-3 border" style="border-radius: 15px; background-color: #fbfbfb;">
@@ -32,11 +32,13 @@ $(function () {
                         <img src="img/ava2-bg.webp"
                         alt="avatar 1" style="width: 45px; height: 100%;">
                     </div>`);
+        let messages = $('#messages');
+
         $('#messages').append(elem);
-        $('#messages').animate({ scrollTop: $(elem).offset().top }, 500);
+        $('#messages').animate({ scrollTop: messages[0].scrollHeight }, 1000);
     });
 
-    socket.on('bot message', function (msg) {
+    socket.on('bot-message', function (msg) {
         console.log(msg);
         var elem = $(`<div class="d-flex flex-row justify-content-start mb-4">
                         <img src="img/ava5-bg.webp"
@@ -45,23 +47,32 @@ $(function () {
                         <p class="small mb-0">${msg}</p>
                         </div>
                     </div>`);
+        let messages = $('#messages');
+
         $('#messages').append(elem);
-        $('#messages').animate({ scrollTop: $(elem).offset().top }, 500);
+        $('#messages').animate({ scrollTop: messages[0].scrollHeight }, 1000);
     });
 
     let speakButton = $('#speak');
-    let recordAudio;
+    let recordAudioRTC;
+    let streamAudioRTC;
 
     // on start button handler
     speakButton.click(function () {
+        if (streamAudioRTC) {
+            if (streamAudioRTC.state === 'recording')
+                streamAudioRTC.stopRecording();
 
-        if (!recordAudio) {
-            // make use of HTML 5/WebRTC, JavaScript getUserMedia()
-            // to capture the browser microphone stream
-            navigator.getUserMedia({
+            streamAudioRTC.destroy();
+            streamAudioRTC = null;
+            streamButton.removeClass("rec");
+        }
+
+        if (!recordAudioRTC) {
+            navigator.mediaDevices.getUserMedia({
                 audio: true
-            }, function (stream) {
-                recordAudio = RecordRTC(stream, {
+            }).then(async function (stream) {
+                recordAudioRTC = RecordRTC(stream, {
                     type: 'audio',
                     mimeType: 'audio/webm',
                     sampleRate: 44100, // this sampleRate should be the same in your server code
@@ -87,29 +98,27 @@ $(function () {
                     desiredSampRate: 16000
                 });
 
-                recordAudio.startRecording();
+                recordAudioRTC.startRecording();
                 speakButton.addClass("rec");
-            }, function (error) {
-                console.error(JSON.stringify(error));
             });
         }
 
-        if (recordAudio) {
-            if (recordAudio.state === 'stopped') {
-                recordAudio.reset();
-                recordAudio.startRecording();
+        if (recordAudioRTC) {
+            if (recordAudioRTC.state === 'stopped') {
+                recordAudioRTC.reset();
+                recordAudioRTC.startRecording();
                 speakButton.addClass("rec");
             }
             // recording started
-            else if (recordAudio.state === 'recording') {
+            else if (recordAudioRTC.state === 'recording') {
                 // stop audio recorder
-                recordAudio.stopRecording(function () {
+                recordAudioRTC.stopRecording(function () {
                     speakButton.removeClass("rec");
                     // after stopping the audio, get the audio data
-                    recordAudio.getDataURL(function (audioDataURL) {
+                    recordAudioRTC.getDataURL(function (audioDataURL) {
                         var files = {
                             audio: {
-                                type: recordAudio.getBlob().type || 'audio/wav',
+                                type: recordAudioRTC.getBlob().type || 'audio/wav',
                                 dataURL: audioDataURL
                             }
                         };
@@ -121,5 +130,83 @@ $(function () {
         }
     });
 
+    let streamButton = $('#stream');
+    let audioStream;
+
+    streamButton.click(function () {
+        if (recordAudioRTC) {
+            if (recordAudioRTC.state === 'recording')
+                recordAudioRTC.stopRecording();
+
+            recordAudioRTC.destroy();
+            recordAudioRTC = null;
+            speakButton.removeClass("rec");
+        }
+
+        if (!streamAudioRTC) {
+            navigator.mediaDevices.getUserMedia({
+                audio: true
+            }).then(async function (stream) {
+                streamAudioRTC = RecordRTC(stream, {
+                    type: 'audio',
+                    mimeType: 'audio/webm',
+                    sampleRate: 44100,
+                    desiredSampRate: 16000,
+
+                    recorderType: StereoAudioRecorder,
+                    numberOfAudioChannels: 1,
+
+
+                    //1)
+                    // get intervals based blobs
+                    // value in milliseconds
+                    // as you might not want to make detect calls every seconds
+                    timeSlice: 4000,
+
+                    //2)
+                    // as soon as the stream is available
+                    ondataavailable: function (blob) {
+
+                        // 3
+                        // making use of socket.io-stream for bi-directional
+                        // streaming, create a stream
+                        audioStream = ss.createStream();
+                        // stream directly to server
+                        // it will be temp. stored locally
+                        ss(socket).emit('stream', audioStream, {
+                            name: socket.id + '.wav',
+                            size: blob.size
+                        });
+                        // pipe the audio blob to the read stream
+                        ss.createBlobReadStream(blob).pipe(audioStream);
+                    }
+                });
+
+                streamAudioRTC.startRecording();
+                streamButton.addClass("rec");
+            });
+        }
+
+        if (streamAudioRTC) {
+            if (streamAudioRTC.state === 'stopped') {
+                streamAudioRTC.reset();
+                streamAudioRTC.startRecording();
+                streamButton.addClass("rec");
+            }
+            // recording started
+            else if (streamAudioRTC.state === 'recording') {
+                // stop audio recorder
+                streamAudioRTC.stopRecording(function () {
+                    streamButton.removeClass("rec");
+
+                    // after stopping the audio, close the stream
+                    audioStream.destroy();
+                    audioStream = null;
+
+                    socket.emit('stream-closed', socket.id + '.wav');
+                });
+            }
+        }
+    });
 });
 
